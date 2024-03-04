@@ -184,19 +184,19 @@ static BMP280_Config_t 	   	BMP280_Config;
 
 
 
-static  AHT_BMP_Error_t AHT_BMP__BMPRead16Reg(bool Le, uint8_t addr, uint16_t *data)
+static  Error_t AHT_BMP__BMPRead16Reg(bool Le, uint8_t addr, uint16_t *data)
 {
 	uint8_t data0, data1;
-	AHT_BMP_Error_t rc =AHT_BMP_FAIL;
-	if ( AHT_BMP_FAIL ==  AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, addr, 1,  &data0))
+	Error_t rc =ERROR_FAIL;
+	if ( ERROR_FAIL ==  AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, addr, 1,  &data0))
 	{
 		return rc;
 	}
-	if ( AHT_BMP_FAIL == AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, addr+1, 1, &data1))
+	if ( ERROR_FAIL == AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, addr+1, 1, &data1))
 	{
 		return rc;
 	}
-	rc = AHT_BMP_SUCESS;
+	rc = ERROR_OK;
 
 		if(Le)
 	{
@@ -213,7 +213,7 @@ static  AHT_BMP_Error_t AHT_BMP__BMPRead16Reg(bool Le, uint8_t addr, uint16_t *d
 static bool AHT_BMP__BMP_Is_reading_calibration(void)
 {
 	uint8_t rstatus = 0;
-    if (AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_STATUS,1,&rstatus)  != AHT_BMP_SUCESS )
+    if (AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_STATUS,1,&rstatus)  != ERROR_OK )
 		{
         return false;
     }
@@ -221,9 +221,9 @@ static bool AHT_BMP__BMP_Is_reading_calibration(void)
 }
 
 
-static AHT_BMP_Error_t AHT_BMP__BMP_CoffRead(void)
+static Error_t AHT_BMP__BMP_CoffRead(void)
  {
-	AHT_BMP_Error_t rc = AHT_BMP_SUCESS;
+	Error_t rc = ERROR_OK;
 	uint16_t data16;
 
 	rc |= AHT_BMP__BMPRead16Reg(true, BMP280_REG_T1, &data16);
@@ -274,9 +274,9 @@ static AHT_BMP_Error_t AHT_BMP__BMP_CoffRead(void)
  	return ( (pMeas->osrs_t << 5) | (pMeas->osrs_p << 3) | pMeas->mode);
   }
 
- AHT_BMP_Error_t AHT_BMP__BMP_SetSamp(BMP280_SensorMode_t Mode,BMP280_SensorSamp_t TemSamp,BMP280_SensorSamp_t PressSamp,BMP280_SensorFilter_t Filter,BMP280_Sdandby_t Standby)
+ Error_t AHT_BMP__BMP_SetSamp(BMP280_SensorMode_t Mode,BMP280_SensorSamp_t TemSamp,BMP280_SensorSamp_t PressSamp,BMP280_SensorFilter_t Filter,BMP280_Sdandby_t Standby)
  {
-	 AHT_BMP_Error_t rc 	= AHT_BMP_SUCESS;
+	 Error_t rc 	= ERROR_OK;
 	 uint8_t Cfg,Meas;
 	 BMP280_CtrlMeas.mode 	= Mode;
 	 BMP280_CtrlMeas.osrs_t = TemSamp;
@@ -297,9 +297,9 @@ static AHT_BMP_Error_t AHT_BMP__BMP_CoffRead(void)
 
 
 
- AHT_BMP_Error_t AHT_BMP__take_forced_measurement(BMP280_CtrlMeas_t *pMeas)
+ Error_t AHT_BMP__take_forced_measurement(BMP280_CtrlMeas_t *pMeas)
  {
-	 AHT_BMP_Error_t rc = AHT_BMP_FAIL;
+	 Error_t rc 	=ERROR_FAIL;
 	 uint8_t data = 0;
 	 uint8_t Meas;
 	 if (NULL == pMeas)
@@ -313,7 +313,7 @@ static AHT_BMP_Error_t AHT_BMP__BMP_CoffRead(void)
 		 // set to forced mode, i.e. "take next measurement"
 		 Meas = AHT_BMP__BMP_CtrlMeas(&BMP280_CtrlMeas);
 		 rc = AHT_BMP_dev.I2C_WriteRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_CONTROL,1,&Meas);
-		 if(AHT_BMP_SUCESS == rc )
+		 if(ERROR_OK == rc )
 		 {
 			 do
 			 {
@@ -321,7 +321,7 @@ static AHT_BMP_Error_t AHT_BMP__BMP_CoffRead(void)
 				 AHT_BMP_dev.Delay(10);
 
 			 }
-			 while ((AHT_BMP_SUCESS == rc )  && (data & 0x08) );
+			 while ((ERROR_OK == rc )  && (data & 0x08) );
 		 }
 	 }
 	 return rc;
@@ -332,9 +332,9 @@ static AHT_BMP_Error_t AHT_BMP__BMP_CoffRead(void)
 
 
 
-AHT_BMP_Error_t AHT_BMP__Init(void *AHThandle, void *BMPhandle , uint8_t AHTaddr,uint8_t BMPaddr, I2C_WriteRegisterFunc WriteRegister, I2C_ReadRegisterFunc  ReadRegister, I2C_WriteFunc Write, I2C_ReadFunc Read, DelayFunc Delay)
+ Error_t AHT_BMP__Init(void *AHThandle, void *BMPhandle , uint8_t AHTaddr,uint8_t BMPaddr, I2C_WriteRegisterFunc WriteRegister, I2C_ReadRegisterFunc  ReadRegister, I2C_WriteFunc Write, I2C_ReadFunc Read, DelayFunc Delay)
 {
-	AHT_BMP_Error_t rc = AHT_BMP_FAIL;
+	 Error_t rc 	=ERROR_FAIL;
 	uint8_t Cmd[2] ={0};
 	uint8_t Status;
 	uint8_t BMP_ChipID;
@@ -413,7 +413,7 @@ AHT_BMP_Error_t AHT_BMP__Init(void *AHThandle, void *BMPhandle , uint8_t AHTaddr
 
 	/* ----------------------------- BMP setting  start --------------------------- */
 	printf("BMP setting start ... \n");
-		if ( AHT_BMP_FAIL ==  AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_CHIPID,1,&BMP_ChipID) )
+		if ( ERROR_FAIL ==  AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_CHIPID,1,&BMP_ChipID) )
 	    {
 	    	return rc;
 	    }
@@ -423,7 +423,7 @@ AHT_BMP_Error_t AHT_BMP__Init(void *AHThandle, void *BMPhandle , uint8_t AHTaddr
 	    	return rc;
 	    }
 	    uint8_t rstv = 0xB6;
-	    if ( AHT_BMP_FAIL ==  AHT_BMP_dev.I2C_WriteRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_SOFTRESET,1,&rstv) )
+	    if ( ERROR_FAIL ==  AHT_BMP_dev.I2C_WriteRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_SOFTRESET,1,&rstv) )
 	    {
 	    	return rc;
 	    }
@@ -435,17 +435,17 @@ AHT_BMP_Error_t AHT_BMP__Init(void *AHThandle, void *BMPhandle , uint8_t AHTaddr
 	       {
 	    	   AHT_BMP_dev.Delay(100);
 	       }
-	       if ( AHT_BMP_FAIL == AHT_BMP__BMP_CoffRead())
+	       if ( ERROR_FAIL == AHT_BMP__BMP_CoffRead())
 	       {
 	    	   return rc;
 	       }
-	       if ( AHT_BMP_FAIL == AHT_BMP__BMP_SetSamp( BME280_MODE_NORMAL, BME280_SAMPLING_X16, BME280_SAMPLING_X16,  BME280_FILTER_OFF, BME280_STANDBY_MS_0_5))
+	       if ( ERROR_FAIL == AHT_BMP__BMP_SetSamp( BME280_MODE_NORMAL, BME280_SAMPLING_X16, BME280_SAMPLING_X16,  BME280_FILTER_OFF, BME280_STANDBY_MS_0_5))
 	       {
 	      	    	   return rc;
 	       }
 	/* ----------------------------- BMP settting finshed ------------------------ */
 	    printf("BMP setting finished ... \n");
-	    rc =  AHT_BMP_SUCESS;
+	    rc =  ERROR_OK;
 	return rc;
 }
 
@@ -456,12 +456,12 @@ AHT_BMP_Error_t AHT_BMP__Init(void *AHThandle, void *BMPhandle , uint8_t AHTaddr
 
 
 
-AHT_BMP_Error_t AHT_BMP__AHT_TempHumidity(float *temperature, float *humidity)
+ Error_t AHT_BMP__AHT_TempHumidity(float *temperature, float *humidity)
 {
 	uint8_t Cmd[2] ={0x33, 0};
 	uint8_t Status;
 	uint8_t data[7];
-    AHT_BMP_Error_t rc = AHT_BMP_FAIL;
+	Error_t rc = ERROR_FAIL;
 	
 	AHT_BMP_dev.I2C_WriteRegister(AHT_BMP_dev.AHThandle,AHT_BMP_dev.AHTaddr, AHTx_REGISTER_TRIGGER,2,Cmd);
 	
@@ -499,26 +499,26 @@ AHT_BMP_Error_t AHT_BMP__AHT_TempHumidity(float *temperature, float *humidity)
 	 // _temperature = ((float)tdata * 200 / 0x100000) - 50;
 	  *temperature =  ((float)tdata / 0x100000) * 200 - 50;
 
-	return AHT_BMP_SUCESS;
+	return ERROR_OK;
 }
 
 
-AHT_BMP_Error_t AHT_BMP__BMP_Temp(float *temperature)
+ Error_t AHT_BMP__BMP_Temp(float *temperature)
 {
     int32_t var1, var2;
     uint8_t data[3] = { 0 };
-    AHT_BMP_Error_t rc = AHT_BMP_FAIL;
+    Error_t rc = ERROR_FAIL;
 
    rc = AHT_BMP_dev.I2C_ReadRegister(AHT_BMP_dev.BMPhandle,AHT_BMP_dev.BMPaddr, BMP280_REG_TEMPDATA,3,data);
 
-   if( AHT_BMP_SUCESS == rc )
+   if( ERROR_OK == rc )
     {
    	int32_t adc_T = (data[0] << 16) | (data[1] << 8) | data[2];
 
 
 		 if (adc_T == 0x800000)
 		 {      // value in case temp measurement was disabled
-			 return AHT_BMP_FAIL;
+			 return ERROR_FAIL;
 		 }
 		 adc_T >>= 4;
 
